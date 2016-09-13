@@ -6,11 +6,7 @@
     use ObjectivePHP\Application\Exception;
     use ObjectivePHP\Application\Middleware\MiddlewareInterface;
     use ObjectivePHP\Application\Workflow\Filter\FiltersHandler;
-    use ObjectivePHP\Invokable\Invokable;
     use ObjectivePHP\Invokable\InvokableInterface;
-    use ObjectivePHP\Primitives\Collection\Collection;
-    use ObjectivePHP\ServicesFactory\ServiceReference;
-
 
     /**
      * Class Hook
@@ -19,9 +15,8 @@
      */
     class Hook
     {
-        
         use FiltersHandler;
-        
+
         /**
          * @var
          */
@@ -54,32 +49,20 @@
          */
         public function run(ApplicationInterface $app)
         {
-            try
-            {
-                // filter call
-                if (!$this->runFilters($app)) {
-                    return null;
-                }
-                $app->getEventsHandler()->trigger('application.workflow.hook.run', $this);
-
-                $middleware = $this->getMiddleware();
-
-                if($middleware instanceof InvokableInterface) $middleware->setApplication($app);
-
-                return $middleware($app);
-
+            // filter call
+            if (!$this->runFilters($app)) {
+                return null;
             }
-            catch(\Throwable $e)
-            {
-                if(!empty($middleware))
-                {
-                    throw new Exception('Failed running hook "' . $middleware->getReference() . '" of type: ' . $middleware->getDescription(), null, $e);
-                }
-                else {
-                    // propagate Exception
-                    throw $e;
-                }
+
+            $app->getEventsHandler()->trigger('application.workflow.hook.run', $this);
+
+            $middleware = $this->getMiddleware();
+
+            if ($middleware instanceof InvokableInterface) {
+                $middleware->setApplication($app);
             }
+
+            return $middleware($app);
         }
 
         /**
