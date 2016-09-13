@@ -1,10 +1,9 @@
 <?php
 
     namespace ObjectivePHP\Application;
-    
+
     use Composer\Autoload\ClassLoader;
     use ObjectivePHP\Application\Operation\ExceptionHandler;
-    use ObjectivePHP\Application\Workflow\Hook;
     use ObjectivePHP\Application\Workflow\Step;
     use ObjectivePHP\Config\Config;
     use ObjectivePHP\Config\Loader\DirectoryLoader;
@@ -14,7 +13,6 @@
     use ObjectivePHP\Matcher\Matcher;
     use ObjectivePHP\Message\Request\RequestInterface;
     use ObjectivePHP\Message\Response\ResponseInterface;
-    use ObjectivePHP\Primitives\Collection\BreakException;
     use ObjectivePHP\Primitives\Collection\Collection;
     use ObjectivePHP\ServicesFactory\ServicesFactory;
     use Zend\Diactoros\Response;
@@ -111,7 +109,7 @@
 
             // set default Exception Handler
             $this->setExceptionHandler(new ExceptionHandler());
-            
+
             $this->init();
 
         }
@@ -174,7 +172,7 @@
             {
                 $this->config = new Config();
             }
-            
+
             return $this->config;
         }
 
@@ -321,47 +319,77 @@
          */
         public function run()
         {
-            // let ServicesFactory and EventsHandler know each other
             $this->getEventsHandler()->setServicesFactory($this->getServicesFactory());
 
-            try
-            {
-                $this->getSteps()->each(function (Step $step)
-                {
-                    
-                    // filter step
-                    if(!$step->runFilters($this))
-                    {
-                        return;
+            try {
+                /** @var \ObjectivePHP\Application\Workflow\Step $step */
+                foreach ($this->getSteps()->getInternalValue() as &$step) {
+                    if (!$step->runFilters($this)) {
+                        continue;
                     }
-                    
+
                     $this->getEventsHandler()->trigger('application.workflow.step.run', $step);
                     $this->executionTrace[$step->getName()] = [];
-                    $this->currentExecutionStack            = &$this->executionTrace[$step->getName()];
+                    $this->currentExecutionStack = &$this->executionTrace[$step->getName()];
 
-                    $step->each(function (Hook $hook)
-                    {
+                    /** @var \ObjectivePHP\Application\Workflow\Hook$hook */
+                    foreach ($step->getInternalValue() as $hook) {
                         $this->currentExecutionStack[] = $hook->getMiddleware();
                         $result = $hook->run($this);
 
-                        if($result instanceof Response)
-                        {
-                            $emitter = new Response\SapiEmitter();
-                            //$emitter->emit($result);
-                            throw new BreakException;
+                        if ($result instanceof Response) {
+                            $this->setResponse($result);
+                            break 2;
                         }
                     }
-                    );
-                });
+                }
+            } catch (\Throwable $e) {
+                $this->setResponse($this->handleException($e));
             }
-            catch (\Throwable $e)
-            {
-                $this->setException($e);
-                $exceptionHandler = $this->getExceptionHandler();
-                $exceptionHandler($this);
-            }
-            
+
             return $this;
+        }
+
+        /**
+         * Emit the response
+         */
+        public function emit()
+        {
+            if (headers_sent($file, $line)) {
+                throw new Exception(sprintf('Header already sent in %s on line %d', $file, $line));
+            }
+
+            try {
+                $response = $this->getResponse();
+            } catch (\Throwable $e) {
+                $response = $this->handleException($e);
+            } finally {
+                (new Response\SapiEmitter())->emit($response);
+            }
+        }
+
+        /**
+         * Handle workflow exception
+         *
+         * @param \Throwable $e
+         *
+         * @return Response
+         */
+        protected function handleException(\Throwable $e): Response
+        {
+            $this->setException($e);
+            $response = ($this->getExceptionHandler())($this);
+            if (!$response instanceof Response) {
+                trigger_error(
+                    sprintf(
+                        'Exception handler must return a instance of Zend\Diactoros\Response, %s given',
+                        gettype($response)
+                    ),
+                    E_USER_ERROR
+                );
+            }
+
+            return $response;
         }
 
         /**
