@@ -19,9 +19,9 @@
      */
     class Hook
     {
-        
+
         use FiltersHandler;
-        
+
         /**
          * @var
          */
@@ -60,7 +60,7 @@
                 if (!$this->runFilters($app)) {
                     return null;
                 }
-                $app->getEventsHandler()->trigger('application.workflow.hook.run', $this);
+                //$app->getEventsHandler()->trigger('application.workflow.hook.run', $this);
 
                 $middleware = $this->getMiddleware();
 
@@ -71,14 +71,15 @@
             }
             catch(\Throwable $e)
             {
-                if(!empty($middleware))
+                throw $e;
+                /*if(!empty($middleware))
                 {
                     throw new Exception('Failed running hook "' . $middleware->getReference() . '" of type: ' . $middleware->getDescription(), null, $e);
                 }
                 else {
                     // propagate Exception
                     throw $e;
-                }
+                }*/
             }
         }
 

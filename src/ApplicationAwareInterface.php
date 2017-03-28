@@ -1,16 +1,20 @@
 <?php
 
-    namespace ObjectivePHP\Application;
+namespace ObjectivePHP\Application;
 
+/**
+ * Interface ApplicationAwareInterface
+ *
+ * @package ObjectivePHP\Application
+ */
+interface ApplicationAwareInterface
+{
     /**
-     * Interface ApplicationAwareInterface
+     * Set the ApplicationInterface instance
      *
-     * @package ObjectivePHP\Application
+     * @param ApplicationInterface $application
+     *
+     * @return ApplicationInterface
      */
-    interface ApplicationAwareInterface
-    {
-        /**
-         * @param ApplicationInterface $application
-         */
-        public function setApplication(ApplicationInterface $application);
-    }
+    public function setApplication(ApplicationInterface $application) : ApplicationInterface;
+}
