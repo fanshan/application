@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "content-hash": "4b7879cfe913d4ca8c7215228381a032",
+    "content-hash": "6a8c361ee83612332c51ad7e54a2c0a6",
     "packages": [
         {
             "name": "container-interop/container-interop",
@@ -685,16 +685,16 @@
         },
         {
             "name": "objective-php/message",
-            "version": "v1.0.2",
+            "version": "v1.1.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/objective-php/message.git",
-                "reference": "412cbff5eab8dcf1b6dfbceca72878cec4d222f1"
+                "reference": "ea8d6b8dcd368c67a2cc230b6c6ce8074f677fd7"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/objective-php/message/zipball/412cbff5eab8dcf1b6dfbceca72878cec4d222f1",
-                "reference": "412cbff5eab8dcf1b6dfbceca72878cec4d222f1",
+                "url": "https://api.github.com/repos/objective-php/message/zipball/ea8d6b8dcd368c67a2cc230b6c6ce8074f677fd7",
+                "reference": "ea8d6b8dcd368c67a2cc230b6c6ce8074f677fd7",
                 "shasum": ""
             },
             "require": {
@@ -714,7 +714,7 @@
             },
             "notification-url": "https://packagist.org/downloads/",
             "license": [
-                "GPL3-v3"
+                "GPL-3.0-only"
             ],
             "authors": [
                 {
@@ -723,7 +723,7 @@
                 }
             ],
             "description": "ObjectivePHP implementation for PSR-7",
-            "time": "2018-01-09T16:08:04+00:00"
+            "time": "2018-01-25T16:29:35+00:00"
         },
         {
             "name": "objective-php/notification",

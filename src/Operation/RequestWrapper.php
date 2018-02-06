@@ -58,28 +58,60 @@ class RequestWrapper extends AbstractMiddleware
      */
     public function run(ApplicationInterface $app)
     {
-        if (isset($_SERVER['REQUEST_URI']))
-        {
-            $headers = ServerRequestFactory::marshalHeaders($_SERVER);
-            $uri = ServerRequestFactory::marshalUriFromServer($_SERVER, $headers);
+        if (isset($_SERVER['REQUEST_URI'])) {
+            $server  = ServerRequestFactory::normalizeServer($_SERVER);
+            $files   = ServerRequestFactory::normalizeFiles($_FILES);
+            $headers = ServerRequestFactory::marshalHeaders($server);
 
-            $request = new HttpRequest($uri, $_SERVER['REQUEST_METHOD'], $this->getStream(), $headers);
+            $request = new HttpRequest(
+                ServerRequestFactory::marshalUriFromServer($server, $headers),
+                ServerRequestFactory::get('REQUEST_METHOD', $server, 'GET'),
+                'php://input',
+                $headers,
+                $server,
+                $files,
+                $_COOKIE,
+                $_GET,
+                $_POST,
+                self::marshalProtocolVersion($server)
+            );
 
             $request->setGet($_GET);
             $request->setPost($_POST);
 
-            if(isset($_FILES)) {
+            if (isset($_FILES)) {
                 $request->getParameters()->setFiles($_FILES);
             }
-        }
-        else if(class_exists(CliRequest::class))
-        {
+        } elseif (class_exists(CliRequest::class)) {
             $request = new CliRequest($_SERVER['argv'][1] ?? null);
-        }
-        else {
+        } else {
             throw new Exception("No request matches current environment");
         }
 
         $app->setRequest($request);
+    }
+
+    /**
+     * Return HTTP protocol version (X.Y)
+     *
+     * This is a copy of original method which is marked as private in ServerRequestFactory class
+     *
+     * @param array $server
+     * @return string
+     */
+    protected static function marshalProtocolVersion(array $server)
+    {
+        if (! isset($server['SERVER_PROTOCOL'])) {
+            return '1.1';
+        }
+
+        if (! preg_match('#^(HTTP/)?(?P<version>[1-9]\d*(?:\.\d)?)$#', $server['SERVER_PROTOCOL'], $matches)) {
+            throw new \UnexpectedValueException(sprintf(
+                'Unrecognized protocol version (%s)',
+                $server['SERVER_PROTOCOL']
+            ));
+        }
+
+        return $matches['version'];
     }
 }

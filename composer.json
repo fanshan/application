@@ -22,7 +22,7 @@
     "objective-php/services-factory": "^1.1.0",
     "objective-php/events-handler": "^1.0.0",
     "objective-php/data-processor": "^1.0.0",
-    "objective-php/message": "^1.0.0",
+    "objective-php/message": "^1.1.0",
     "objective-php/router": "^1.0.0",
     "objective-php/cli": "^1.0.0"
   },
